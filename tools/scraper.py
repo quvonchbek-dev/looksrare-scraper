@@ -14,7 +14,6 @@ base_url = "https://looksrare.org/"
 
 
 def scrape(all=False, save_html=False) -> BeautifulSoup:
-    start_time = time.time()
     options = Options()
     # options.add_argument("--headless")
     driver = webdriver.Chrome(options=options, executable_path="drivers/")
@@ -41,7 +40,7 @@ def scrape(all=False, save_html=False) -> BeautifulSoup:
             f.write(html)
 
     soup = BeautifulSoup(html, "lxml")
-    print(f"[+] Data is scraped successfully in {time.time() - start_time} seconds")
+    print(f"[+] Data is scraped successfully.")
     return soup
 
 
@@ -69,29 +68,36 @@ def get_as_json(a: BeautifulSoup):
 
 
 def write_as_json(soup: BeautifulSoup) -> tuple:
-    start_time = time.time()
     list_a = list(soup.find_all("a"))
     data = []
     for a in tqdm(list_a, "Processing...", colour="#01ffbf"):
         data.append(get_as_json(a))
     json.dump(data, open("data/data.json", "w"), indent=4)
-    print(f"[+] Data is written to data.json in {time.time()-start_time} seconds.")
+    print(f"[+] Data is written to data.json")
     return data
 
 
 def write_as_csv(soup: BeautifulSoup = None):
-    start_time = time.time()
     if soup:
         write_as_json(soup)
-    # data = json.load(open("data/data.json", "w"))
     df = pd.read_json("data/data.json").drop(columns=["href"])
-    filename = f"data/{datetime.now().strftime('%Y-%m-%d %H%M')}.csv"
+    filename = f"data/{datetime.now().strftime('%Y-%m-%d-%H%M')}.csv"
     df.to_csv(filename, index=False)
-    print(f"[+] Data is written to {filename} in {time.time()-start_time} seconds.")
+    print(f"[+] Data is written to {filename}")
+    return True
+
+
+def write_as_excel(soup: BeautifulSoup = None):
+    if soup:
+        write_as_json(soup)
+    df = pd.read_json("data/data.json").drop(columns=["rank"])
+    filename = f"data/{datetime.now().strftime('%Y-%m-%d-%H%M')}.xlsx"
+    df.to_excel(filename, index=False)
+    print(f"[+] Data is written to {filename}")
     return True
 
 
 if __name__ == "__main__":
     # soup = BeautifulSoup(open("html\data.html", "r").read(), "html.parser")
-    # write_as_csv()
-    scrape()
+    write_as_csv()
+    # write_as_excel()
